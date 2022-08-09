@@ -297,7 +297,7 @@ class TrueNASCommon(object):
         if clone: # delete the cloned-from snapshot.  Must check before deleting volume, but delete snapshot after
             fullvolume, snapname = clone.split('@')
             temp, snapvol = fullvolume.rsplit('/', 1)
-            self._delete_snapshot(snapname, snapvol)
+            #self._delete_snapshot(snapname, snapvol)
         if ret['status'] != FreeNASServer.STATUS_OK:
             msg = ('Error while deleting volume: %s' % ret['response'])
             raise FreeNASApiError('Unexpected error', msg)

@@ -9,7 +9,8 @@ Contains classes required to issue REST based api calls to FREENAS system.
 
 #from cinder.openstack.common import jsonutils
 from oslo_log import log as logging
-import urllib.request, urllib.error, urllib.parse
+#import urllib.request, urllib.error, urllib.parse
+import urllib2
 import simplejson as json
 import base64
 
@@ -139,7 +140,8 @@ class FreeNASServer(object):
         url = self.get_url() + request_d
         LOG.debug('url : %s, request: %s', url, request_d)
         LOG.debug('param list : %s', param_list)
-        return urllib.request.Request(url, param_list, headers)
+        #return urllib.request.Request(url, param_list, headers)
+        return urllib2.Request(url, param_list, headers)
 
     def _get_method(self, command_d):
         """Select http method based on FREENAS command."""
@@ -180,9 +182,9 @@ class FreeNASServer(object):
     def _get_error_info(self, err):
         """Collects error response message."""
         self.COMMAND_RESPONSE['status'] = self.STATUS_ERROR
-        if isinstance(err, urllib.error.HTTPError):
+        if isinstance(err, urllib2.HTTPError):
             self.COMMAND_RESPONSE['response'] = '%d:%s' % (err.code, err.msg)
-        elif isinstance(err, urllib.error.URLError):
+        elif isinstance(err, urllib2.URLError):
             self.COMMAND_RESPONSE['response'] = '%s:%s' % \
                                                 (str(err.reason.errno),
                                                  err.reason.strerror)
@@ -199,10 +201,10 @@ class FreeNASServer(object):
             raise FreeNASApiError("Invalid FREENAS command")
         request.get_method = lambda: method
         try:
-            response_d = urllib.request.urlopen(request)
+            response_d = urllib2.urlopen(request)
             response = self._parse_result(command_d, response_d)
             LOG.debug("invoke_command : response for request %s : %s", request_d, json.dumps(response))
-        except urllib.error.HTTPError as e:
+        except urllib2.HTTPError as e:
             # LOG the error message received from FreeNAS/TrueNAS: https://github.com/iXsystems/cinder/issues/11
             LOG.info('Error returned from server: "%s"', json.loads(e.read().decode('utf8')))
             error_d = self._get_error_info(e)

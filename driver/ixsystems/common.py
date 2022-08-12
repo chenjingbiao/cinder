@@ -7,7 +7,9 @@ from cinder.volume.drivers.ixsystems.freenasapi import FreeNASApiError
 from cinder.volume.drivers.ixsystems.freenasapi import FreeNASServer
 from oslo_config import cfg
 import os
-import urllib.parse
+#import urllib.parse
+import urlparse
+import urllib
 from cinder.volume.drivers.ixsystems import utils as ix_utils
 import simplejson as json
 
@@ -179,7 +181,7 @@ class TrueNASCommon(object):
         uresp = ret['response']
         resp = json.loads(uresp.decode('utf8'))
         try:
-            return (item for item in resp if item['name'] == name).__next__()['id']
+            return (item for item in resp if item['name'] == name).next()['id']
         except StopIteration:
             return 0
 
@@ -197,7 +199,7 @@ class TrueNASCommon(object):
         uresp = ret['response']
         resp = json.loads(uresp.decode('utf8'))
         try:
-            return (item for item in resp if item['target'] == name).__next__()['id']
+            return (item for item in resp if item['target'] == name).next()['id']
         except StopIteration:
             return 0
 
@@ -215,7 +217,7 @@ class TrueNASCommon(object):
         uresp = ret['response']
         resp = json.loads(uresp.decode('utf8'))
         try:
-            return (item for item in resp if item['name'] == name).__next__()['id']
+            return (item for item in resp if item['name'] == name).next()['id']
         except StopIteration:
             return 0
 
@@ -273,7 +275,7 @@ class TrueNASCommon(object):
     def _dependent_clone(self, name):
         """ returns the fullname of any snapshot used to create volume 'name' """
         request_urn = ('%s/id/%s%s') % (FreeNASServer.REST_API_VOLUME, 
-                      urllib.parse.quote_plus(self.configuration.ixsystems_dataset_path + '/'), name)
+                      urllib.quote_plus(self.configuration.ixsystems_dataset_path + '/'), name)
         LOG.debug('_dependent_clones urn : %s', request_urn)
         ret = self.handle.invoke_command(FreeNASServer.SELECT_COMMAND, request_urn, None)
         LOG.debug('_dependent_clones response : %s', json.dumps(ret))
@@ -288,7 +290,7 @@ class TrueNASCommon(object):
         """Deletes specified volume
         """
         request_urn = ('%s/id/%s%s') % (FreeNASServer.REST_API_VOLUME, 
-                      urllib.parse.quote_plus(self.configuration.ixsystems_dataset_path + '/'), name)
+                      urllib.quote_plus(self.configuration.ixsystems_dataset_path + '/'), name)
         LOG.debug('_delete_volume urn : %s', request_urn)
         clone = self._dependent_clone(name) # add check for dependent clone, if exists will delete
         ret = self.handle.invoke_command(FreeNASServer.DELETE_COMMAND,
@@ -326,7 +328,7 @@ class TrueNASCommon(object):
         """Delets a snapshot of specified volume."""
         LOG.debug('_delete_snapshot, deleting name: %s from volume: %s', name, volume_name)
         request_urn = ('%s/id/%s@%s') % (FreeNASServer.REST_API_SNAPSHOT, 
-                      urllib.parse.quote_plus(self.configuration.ixsystems_dataset_path + '/' + volume_name), name)
+                      urllib.quote_plus(self.configuration.ixsystems_dataset_path + '/' + volume_name), name)
         LOG.debug('_delete_snapshot urn : %s', request_urn)
         try:
             ret = self.handle.invoke_command(FreeNASServer.DELETE_COMMAND,
@@ -404,7 +406,7 @@ class TrueNASCommon(object):
         jparams = json.dumps(params)
         jparams = jparams.encode('utf8')
         request_urn = ('%s/id/%s') % (FreeNASServer.REST_API_VOLUME, 
-                      urllib.parse.quote_plus(self.configuration.ixsystems_dataset_path + '/' + name))
+                      urllib.quote_plus(self.configuration.ixsystems_dataset_path + '/' + name))
         ret = self.handle.invoke_command(FreeNASServer.UPDATE_COMMAND,
                                          request_urn, jparams)
         if ret['status'] != FreeNASServer.STATUS_OK:
